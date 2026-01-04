@@ -36,7 +36,15 @@ export const logoutUser = () => {
     window.location.href = '/login';
 };
 
+// Ambil data User lengkap (untuk ditampilkan nama, role, dll)
 export const getCurrentUser = () => {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr).user : null;
+};
+
+// Ambil Token saja (INI YANG TADI KURANG)
+// Dipakai oleh deviceService.js dan adminService.js
+export const getToken = () => {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr).token : null;
 };
