@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Import Model agar tabel dibuat otomatis saat start
 require('./models/User');
@@ -16,6 +17,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Jalankan Server & DB
 sequelize.sync({ alter: true }) // 'alter: true' update struktur tabel jika ada perubahan
