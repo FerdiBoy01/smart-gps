@@ -1,0 +1,78 @@
+############################
+# ENV / RAHASIA
+############################
+.env
+.env.*
+!.env.example
+
+############################
+# NODE.JS
+############################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+############################
+# BUILD HASIL COMPILE
+############################
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+
+############################
+# CACHE & TEMP
+############################
+.cache/
+.tmp/
+.temp/
+
+############################
+# FRAMEWORK UMUM
+############################
+# Vite
+.vite/
+
+# React
+.eslintcache
+
+# Next.js
+.next/
+.vercel/
+
+############################
+# DATABASE LOKAL
+############################
+*.sqlite
+*.sqlite3
+*.db
+
+############################
+# UPLOAD / FILE USER
+############################
+uploads/
+public/uploads/
+
+############################
+# LOG FILE
+############################
+logs/
+*.log
+
+############################
+# IDE / EDITOR
+############################
+.vscode/
+.idea/
+*.swp
+*.swo
+
+############################
+# OS
+############################
+.DS_Store
+Thumbs.db
