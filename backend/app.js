@@ -8,7 +8,8 @@ require('./models');
 // --- IMPORT ROUTES ---
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-const deviceRoutes = require('./routes/deviceRoutes'); // <--- 1. WAJIB ADA
+const deviceRoutes = require('./routes/deviceRoutes');
+const gpsRoutes = require('./routes/gpsRoutes'); // <--- 1. WAJIB ADA
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,7 +20,8 @@ app.use(express.json());
 // --- DAFTARKAN ROUTES ---
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/devices', deviceRoutes); // <--- 2. WAJIB ADA (Penyebab 404 kalau hilang)
+app.use('/api/devices', deviceRoutes); 
+app.use('/api/gps', gpsRoutes);// <--- 2. WAJIB ADA (Penyebab 404 kalau hilang)
 
 sequelize.sync({ alter: true })
     .then(() => {

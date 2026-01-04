@@ -10,6 +10,18 @@ const deviceApi = axios.create({
     headers: { 'Content-Type': 'application/json' }
 });
 
+const gpsApi = axios.create({
+    baseURL: `${BASE_URL}/gps`,
+    headers: { 'Content-Type': 'application/json' }
+});
+
+gpsApi.interceptors.request.use((config) => {
+    const token = getToken();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+}, (error) => Promise.reject(error));
+
+
 // INTERCEPTOR: Otomatis pasang Token di setiap request
 // (Penting! Agar backend tau siapa user yg request)
 deviceApi.interceptors.request.use((config) => {
@@ -59,3 +71,9 @@ export const resetDevice = async (id) => {
     const response = await deviceApi.put(`/admin/reset/${id}`);
     return response.data;
 };
+
+export const getDeviceDetail = async (id) =>
+     (await gpsApi.get(`/detail/${id}`)).data;
+
+export const getDeviceHistory = async (id) => 
+    (await gpsApi.get(`/history/${id}`)).data;

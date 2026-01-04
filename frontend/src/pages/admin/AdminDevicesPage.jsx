@@ -41,12 +41,12 @@ const AdminDevicesPage = () => {
                                 <td className="p-4"><span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono font-bold tracking-wider">{dev.pairingCode}</span></td>
                                 <td className="p-4">
                                     {dev.owner ? ( // Ganti .User jadi .owner
-    <div className="flex items-center gap-2 text-blue-700">
-        <User size={14}/> <span className="font-medium">{dev.owner.username}</span> {/* Ganti .User jadi .owner */}
-    </div>
-) : (
-    <span className="text-slate-400 italic">Belum dipairing</span>
-)}
+                                        <div className="flex items-center gap-2 text-blue-700">
+                                            <User size={14}/> <span className="font-medium">{dev.owner.username}</span> {/* Ganti .User jadi .owner */}
+                                        </div>
+                                    ) : (
+                                        <span className="text-slate-400 italic">Belum dipairing</span>
+                                    )}
                                 </td>
                                 <td className="p-4 text-center">
                                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${dev.userId ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>

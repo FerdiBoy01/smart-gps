@@ -15,6 +15,7 @@ import AdminDevicesPage from './pages/admin/AdminDevicesPage';
 
 // User Pages
 import MyDevicesPage from './pages/user/MyDevicesPage'; // Import Page Baru
+import DeviceDetailPage from './pages/user/DeviceDetailPage';
 
 // Placeholder Dashboard Admin
 const AdminDashboardHome = () => (
@@ -37,6 +38,7 @@ function App() {
         {/* USER ROUTES */}
         {/* Menggunakan MyDevicesPage sebagai dashboard utama user */}
         <Route path="/dashboard" element={<MyDevicesPage />} />
+        <Route path="/device/:id" element={<DeviceDetailPage />} />
 
         {/* ADMIN ROUTES (Protected) */}
         <Route element={<AdminRoute />}>

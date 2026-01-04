@@ -31,6 +31,18 @@ const Device = sequelize.define('Device', {
     status: {
         type: DataTypes.ENUM('active', 'inactive'),
         defaultValue: 'active'
+    },
+    lastLatitude: {
+        type: DataTypes.DOUBLE,
+        allowNull: true
+    },
+    lastLongitude: {
+        type: DataTypes.DOUBLE,
+        allowNull: true
+    },
+    lastActive: {
+        type: DataTypes.DATE, // Kapan terakhir device kirim data
+        allowNull: true
     }
 });
 
