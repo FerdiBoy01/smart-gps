@@ -75,5 +75,23 @@ export const resetDevice = async (id) => {
 export const getDeviceDetail = async (id) =>
      (await gpsApi.get(`/detail/${id}`)).data;
 
-export const getDeviceHistory = async (id) => 
-    (await gpsApi.get(`/history/${id}`)).data;
+
+
+export const getDeviceHistory = async (id, startDate = null, endDate = null) => {
+    let url = `/history/${id}`;
+    
+    // Jika ada tanggal, tambahkan ke URL
+    if (startDate && endDate) {
+        url += `?startDate=${startDate}&endDate=${endDate}`;
+    }
+
+    const response = await gpsApi.get(url);
+    return response.data;
+};
+
+
+
+export const updateSimInfo = async (id, data) => {
+    const response = await deviceApi.put(`/admin/sim/${id}`, data);
+    return response.data;
+};

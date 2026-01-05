@@ -39,4 +39,4 @@ export const createUser = async (userData) => {
 export const updateUser = async (id, userData) => {
     const response = await adminApi.put(`/users/${id}`, userData);
     return response.data;
-};
+};  

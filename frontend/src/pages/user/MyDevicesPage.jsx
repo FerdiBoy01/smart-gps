@@ -1,16 +1,15 @@
 import useMyDevices from '../../hooks/useMyDevices';
 import { getCurrentUser, logoutUser } from '../../services/authService';
-import { Plus, Smartphone, Trash2, X, MapPin, LogOut } from 'lucide-react';
+import { Plus, Smartphone, Trash2, X, MapPin, LogOut, Activity, WifiOff, AlertTriangle, Clock, Signal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Alert from '../../components/Alert';
 
 const MyDevicesPage = () => {
     const navigate = useNavigate();
-    const user = getCurrentUser(); // Ambil data user
+    const user = getCurrentUser();
     
-    // Panggil Logic dari Hook
     const { 
-        devices, isModalOpen, formData, alert, loading,
+        devices, isModalOpen, alert, loading,
         setModalOpen, closeAlert, handleInputChange, handlePair, handleUnpair 
     } = useMyDevices();
 
@@ -19,104 +18,195 @@ const MyDevicesPage = () => {
         navigate('/login');
     };
 
+    // --- LOGIC HELPER ---
+    const isOnline = (lastActive) => {
+        if (!lastActive) return false;
+        return (new Date() - new Date(lastActive)) < 5 * 60 * 1000;
+    };
+
+    const isQuotaCritical = (dev) => {
+        if (!dev.dataLimitMB || dev.dataLimitMB === 0) return false;
+        const usedMB = dev.dataUsedKB / 1024;
+        const percent = (usedMB / dev.dataLimitMB) * 100;
+        return percent > 90;
+    };
+
+    const stats = {
+        total: devices.length,
+        online: devices.filter(d => isOnline(d.lastActive)).length,
+        offline: devices.filter(d => !isOnline(d.lastActive)).length,
+        quotaWarning: devices.filter(d => isQuotaCritical(d)).length
+    };
+
     return (
-        <div className="min-h-screen bg-slate-50">
-            {/* Navbar User */}
-            <nav className="bg-white px-6 py-4 shadow-sm border-b mb-6 sticky top-0 z-10 flex justify-between items-center">
+        <div className="min-h-screen bg-slate-50 font-sans">
+            {/* 1. STICKY NAVBAR MODERN */}
+            <nav className="bg-white/80 backdrop-blur-md px-5 py-4 shadow-sm border-b sticky top-0 z-50 flex justify-between items-center transition-all">
                 <div className="flex items-center gap-2 text-blue-600">
-                    <MapPin className="w-6 h-6" />
-                    <span className="font-bold text-xl tracking-tight">Smart GPS</span>
+                    <div className="bg-blue-50 p-2 rounded-lg">
+                        <MapPin className="w-5 h-5" />
+                    </div>
+                    <span className="font-bold text-lg tracking-tight text-slate-800">PRATIA</span>
                 </div>
-                <div className="flex items-center gap-4">
-                    <span className="text-sm text-slate-600 hidden sm:block">Halo, <b>{user?.username}</b></span>
-                    <button onClick={handleLogout} className="flex items-center text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-                        <LogOut className="w-4 h-4 mr-1" /> Keluar
-                    </button>
-                </div>
+                <button onClick={handleLogout} className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-slate-100">
+                    <LogOut className="w-5 h-5" />
+                </button>
             </nav>
 
-            {/* Content Container */}
-            <div className="container mx-auto px-4 pb-10 max-w-6xl">
-                {/* Header Section */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-800">Perangkat Saya</h1>
-                        <p className="text-slate-500 mt-1">Daftar alat GPS yang terhubung ke akun ini.</p>
+            <div className="container mx-auto px-4 pt-6 pb-20 max-w-lg md:max-w-4xl">
+                
+                {/* 2. STATISTIK COMPACT (GRID 2 KOLOM DI MOBILE) */}
+                {!loading && devices.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+                        {/* Online */}
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group">
+                            <div className="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <Activity size={40} className="text-green-500" />
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Online</p>
+                            <p className="text-2xl font-bold text-slate-800 mt-1">{stats.online} <span className="text-xs font-medium text-slate-400">Unit</span></p>
+                            <div className="mt-2 h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-green-500 rounded-full" style={{ width: `${(stats.online/stats.total)*100}%` }}></div>
+                            </div>
+                        </div>
+
+                        {/* Offline */}
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group">
+                            <div className="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <WifiOff size={40} className="text-slate-500" />
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Offline</p>
+                            <p className="text-2xl font-bold text-slate-800 mt-1">{stats.offline} <span className="text-xs font-medium text-slate-400">Unit</span></p>
+                             <div className="mt-2 h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-slate-400 rounded-full" style={{ width: `${(stats.offline/stats.total)*100}%` }}></div>
+                            </div>
+                        </div>
+
+                        {/* Quota Alert (Span Full Width di Mobile jika ada warning, atau Grid biasa) */}
+                        <div className={`bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden col-span-2 md:col-span-1 ${stats.quotaWarning > 0 ? 'ring-2 ring-red-100' : ''}`}>
+                            <div className="absolute right-0 top-0 p-3 opacity-10">
+                                <AlertTriangle size={40} className={stats.quotaWarning > 0 ? "text-red-500" : "text-blue-500"} />
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kuota Kritis</p>
+                            <p className={`text-2xl font-bold mt-1 ${stats.quotaWarning > 0 ? 'text-red-600' : 'text-slate-800'}`}>
+                                {stats.quotaWarning} <span className="text-xs font-medium text-slate-400">Device</span>
+                            </p>
+                             <div className="mt-2 h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${stats.quotaWarning > 0 ? 'bg-red-500' : 'bg-blue-500'}`} style={{ width: stats.quotaWarning > 0 ? '100%' : '0%' }}></div>
+                            </div>
+                        </div>
                     </div>
-                    <button onClick={() => setModalOpen(true)} className="bg-blue-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all active:scale-95 font-medium">
-                        <Plus size={20} /> Tambah Device
+                )}
+
+                {/* 3. JUDUL & TOMBOL TAMBAH (SEJAJAR) */}
+                <div className="flex justify-between items-end mb-4">
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-800">Perangkat Saya</h2>
+                        <p className="text-xs text-slate-500">Total {stats.total} kendaraan terdaftar</p>
+                    </div>
+                    <button 
+                        onClick={() => setModalOpen(true)} 
+                        className="bg-blue-600 text-white pl-3 pr-4 py-2 rounded-xl flex items-center gap-1 hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all active:scale-95 text-xs font-bold"
+                    >
+                        <Plus size={16} /> Tambah
                     </button>
                 </div>
 
-                {/* Alert Notification */}
-                {alert && <Alert type={alert.type} message={alert.message} onClose={closeAlert} />}
+                {alert && <div className="mb-4"><Alert type={alert.type} message={alert.message} onClose={closeAlert} /></div>}
 
-                {/* Grid Device List */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* 4. LIST DEVICE YANG LEBIH CLEAN */}
+                <div className="space-y-3">
                     {loading ? (
-                        <p className="text-slate-500 col-span-full text-center py-10 animate-pulse">Sedang memuat perangkat...</p>
+                        [1,2].map(i => <div key={i} className="h-24 bg-slate-200 rounded-2xl animate-pulse"></div>)
                     ) : devices.map(dev => (
-                        <div key={dev.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all hover:-translate-y-1 relative group overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => handleUnpair(dev.id)} className="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-100" title="Hapus Device">
-                                    <Trash2 size={16}/>
-                                </button>
-                            </div>
-                            
-                            <div className="flex items-start gap-4">
-                                <div className="bg-blue-50 p-4 rounded-2xl">
-                                    <Smartphone className="text-blue-600 w-8 h-8" />
+                        <div 
+                            key={dev.id} 
+                            onClick={() => navigate(`/device/${dev.id}`)}
+                            className="bg-white p-4 rounded-2xl shadow-[0_2px_8px_rgb(0,0,0,0.04)] border border-slate-100 active:scale-[0.98] transition-all relative overflow-hidden cursor-pointer group"
+                        >
+                            {/* Status Bar Kiri */}
+                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${isOnline(dev.lastActive) ? 'bg-green-500' : 'bg-slate-300'}`}></div>
+
+                            <div className="flex items-center gap-4 pl-2">
+                                {/* Icon Device */}
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isOnline(dev.lastActive) ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
+                                    <Smartphone size={24} strokeWidth={1.5} />
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-800 text-lg">{dev.name}</h3>
-                                    <p className="text-xs text-slate-400 font-mono mt-1 tracking-wide">ID: {dev.deviceId}</p>
-                                    <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full">
-                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                                        Online
+
+                                {/* Info Device */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-start">
+                                        <h3 className="font-bold text-slate-800 text-base truncate pr-2">{dev.name}</h3>
+                                        {/* Status Badge Kecil */}
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isOnline(dev.lastActive) ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                            {isOnline(dev.lastActive) ? 'ON' : 'OFF'}
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 font-mono tracking-wide mt-0.5">ID: {dev.deviceId}</p>
+                                    
+                                    <div className="flex items-center gap-3 mt-2">
+                                        <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium">
+                                            <Clock size={10}/> 
+                                            {dev.lastActive ? new Date(dev.lastActive).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-'}
+                                        </div>
+                                        {isQuotaCritical(dev) && (
+                                            <div className="flex items-center gap-1 text-[10px] text-red-500 font-bold animate-pulse">
+                                                <AlertTriangle size={10}/> Cek Kuota
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
+                            
+                            {/* Tombol Hapus (Hidden by default, show on hover/swipe logic ideally, but simplified here) */}
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); handleUnpair(dev.id); }} 
+                                className="absolute top-0 right-0 p-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                                <Trash2 size={16}/>
+                            </button>
                         </div>
                     ))}
                 </div>
-                
+
                 {/* Empty State */}
                 {!loading && devices.length === 0 && (
-                    <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-200">
-                        <div className="bg-slate-50 p-4 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                            <Smartphone className="w-10 h-10 text-slate-300" />
+                    <div className="text-center py-16">
+                        <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                            <Signal size={32} />
                         </div>
-                        <h3 className="text-slate-700 font-bold text-lg">Belum ada perangkat</h3>
-                        <p className="text-slate-400 max-w-xs mx-auto mt-2 text-sm">Anda belum menghubungkan alat GPS apapun. Klik tombol Tambah Device di atas.</p>
+                        <h3 className="text-slate-600 font-bold">Belum ada perangkat</h3>
+                        <p className="text-xs text-slate-400 mt-1">Tambahkan GPS Tracker Anda sekarang.</p>
                     </div>
                 )}
             </div>
 
-            {/* MODAL POPUP PAIRING */}
+            {/* MODAL PAIRING (Desain diperhalus) */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white p-8 rounded-3xl w-full max-w-sm shadow-2xl animate-fade-in-down">
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-end sm:items-center z-[60] p-0 sm:p-4">
+                    <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-fade-in-up">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-2xl text-slate-800">Pairing Device</h3>
-                            <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-600 bg-slate-100 p-1 rounded-full"><X size={20}/></button>
+                            <div>
+                                <h3 className="font-bold text-xl text-slate-800">Tambah Device</h3>
+                                <p className="text-xs text-slate-400 mt-1">Masukkan ID dan Kode dari alat GPS</p>
+                            </div>
+                            <button onClick={() => setModalOpen(false)} className="bg-slate-100 p-2 rounded-full text-slate-500 hover:bg-slate-200"><X size={18}/></button>
                         </div>
-                        
-                        <form onSubmit={handlePair} className="space-y-5">
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Device ID</label>
-                                <input name="deviceId" onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 focus:outline-none font-mono font-medium transition-all" placeholder="Contoh: GPS-001" required />
+                        <form onSubmit={handlePair} className="space-y-4">
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 ml-1">DEVICE ID</label>
+                                <input name="deviceId" onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mt-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono text-sm" placeholder="Contoh: GPS-001" required />
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Pairing Code</label>
-                                <input name="pairingCode" onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 focus:outline-none font-mono font-medium transition-all" placeholder="Contoh: A1B2C3" required />
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 ml-1">PAIRING CODE</label>
+                                <input name="pairingCode" onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mt-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono text-sm" placeholder="Contoh: 123456" required />
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Nama Kendaraan</label>
-                                <input name="name" onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 focus:outline-none transition-all" placeholder="Misal: Honda Jazz" />
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 ml-1">NAMA KENDARAAN</label>
+                                <input name="name" onChange={handleInputChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mt-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm" placeholder="Misal: Honda Beat" />
                             </div>
-                            
-                            <button type="submit" className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/30 mt-2 transition-all active:scale-95">
-                                Hubungkan Sekarang
+                            <button type="submit" className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 mt-2 active:scale-95 transition-transform">
+                                Hubungkan
                             </button>
                         </form>
                     </div>

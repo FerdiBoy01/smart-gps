@@ -1,4 +1,5 @@
 const { Device, GpsData } = require('../models');
+const { Op } = require('sequelize');
 
 // 1. TERIMA DATA DARI IOT/HP (Endpoint Umum Tanpa Login User)
 exports.receiveGpsData = async (req, res) => {
@@ -40,6 +41,9 @@ exports.receiveGpsData = async (req, res) => {
         device.lastLatitude = latitude;
         device.lastLongitude = longitude;
         device.lastActive = new Date();
+
+        await device.increment('dataUsedKB', { by: 1 });
+        
         await device.save();
 
         res.status(200).json({ message: 'Data saved' });
@@ -50,27 +54,52 @@ exports.receiveGpsData = async (req, res) => {
     }
 };
 
-// 2. AMBIL HISTORY DEVICE (Untuk User melihat jejak)
+// 2. AMBIL HISTORY DEVICE (DENGAN FILTER)
 exports.getDeviceHistory = async (req, res) => {
     try {
-        const { id } = req.params; // ID database device
-        
-        // Pastikan device milik user yang login
+        const { id } = req.params;
+        const { startDate, endDate } = req.query; // Ambil dari query param (?startDate=...&endDate=...)
+
+        // Cek device milik user
         const device = await Device.findOne({ 
             where: { id, userId: req.user.id } 
         });
 
         if (!device) return res.status(404).json({ message: 'Device tidak ditemukan' });
 
-        // Ambil 100 data terakhir (biar peta tidak berat)
+        // Default: Ambil history hari ini (00:00 - 23:59) jika tidak ada filter
+        let whereClause = { deviceId: device.id };
+
+        if (startDate && endDate) {
+            // Jika user memilih tanggal
+            const start = new Date(startDate); // 2023-10-01 00:00
+            const end = new Date(endDate);     // 2023-10-01 23:59 (atau tanggal beda)
+            
+            whereClause.timestamp = {
+                [Op.between]: [start, end]
+            };
+        } else {
+            // Default: Ambil 100 data terakhir saja (biar ringan saat pertama buka)
+             const recentData = await GpsData.findAll({
+                where: { deviceId: device.id },
+                order: [['timestamp', 'DESC']],
+                limit: 100
+            });
+            // Kita reverse biar urut dari lama ke baru (untuk garis Polyline)
+            return res.json(recentData.reverse());
+        }
+
+        // Query Database dengan Filter Tanggal
         const history = await GpsData.findAll({
-            where: { deviceId: device.id },
-            order: [['timestamp', 'DESC']],
-            limit: 100 
+            where: whereClause,
+            order: [['timestamp', 'ASC']], // Urutkan dari pagi ke malam
+            limit: 2000 // Batasi max 2000 titik agar browser tidak lag
         });
 
         res.json(history);
+
     } catch (error) {
+        console.error("History Error:", error);
         res.status(500).json({ error: error.message });
     }
 };

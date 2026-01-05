@@ -63,3 +63,30 @@ exports.resetDevice = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// 4. UPDATE INFO SIM (Admin Only)
+exports.updateSimInfo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { simProvider, simNumber, dataLimitMB, resetUsage } = req.body;
+
+        const device = await Device.findByPk(id);
+        if (!device) return res.status(404).json({ message: 'Device not found' });
+
+        // Update Info
+        if (simProvider !== undefined) device.simProvider = simProvider;
+        if (simNumber !== undefined) device.simNumber = simNumber;
+        if (dataLimitMB !== undefined) device.dataLimitMB = parseFloat(dataLimitMB);
+
+        // Fitur Reset
+        if (resetUsage) {
+            device.dataUsedKB = 0;
+        }
+
+        await device.save();
+        res.json({ message: 'Info SIM berhasil diupdate', device });
+    } catch (error) {
+        console.error("Error Update SIM:", error); // Biar muncul di terminal
+        res.status(500).json({ error: error.message });
+    }
+};

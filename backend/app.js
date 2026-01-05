@@ -26,6 +26,7 @@ app.use('/api/gps', gpsRoutes);// <--- 2. WAJIB ADA (Penyebab 404 kalau hilang)
 sequelize.sync({ alter: true })
     .then(() => {
         console.log('Database terhubung.');
-        app.listen(PORT, () => console.log(`Server jalan di port ${PORT}`));
+        app.listen(PORT, '0.0.0.0', () => console.log(`Server jalan di port ${PORT}`));
+
     })
     .catch(err => console.error('Gagal konek DB:', err));

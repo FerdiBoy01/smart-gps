@@ -43,6 +43,28 @@ const Device = sequelize.define('Device', {
     lastActive: {
         type: DataTypes.DATE, // Kapan terakhir device kirim data
         allowNull: true
+    },
+
+    // --- FITUR BARU: MONITORING SIM & KUOTA ---
+    simProvider: {
+        type: DataTypes.STRING, // Contoh: 'Telkomsel', 'Indosat'
+        allowNull: true
+    },
+    simNumber: {
+        type: DataTypes.STRING, // Contoh: '0812...'
+        allowNull: true
+    },
+    dataLimitMB: {
+        type: DataTypes.FLOAT, // Total Kuota Paket (misal: 1000 MB)
+        defaultValue: 0
+    },
+    dataUsedKB: {
+        type: DataTypes.FLOAT, // Penghitung pemakaian (akan nambah terus)
+        defaultValue: 0
+    },
+    quotaWarningThreshold: {
+        type: DataTypes.INTEGER, // Persentase warning (misal: 80%)
+        defaultValue: 80
     }
 });
 
