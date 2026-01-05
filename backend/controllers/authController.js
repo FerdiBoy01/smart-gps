@@ -114,3 +114,54 @@ exports.login = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// 1. UPDATE PROFILE
+exports.updateProfile = async (req, res) => {
+    try {
+        const { username, phone } = req.body;
+        // Cari user berdasarkan ID dari token
+        const user = await User.findByPk(req.user.id);
+
+        if (!user) return res.status(404).json({ message: 'User tidak ditemukan' });
+
+        // Update data
+        if (username) user.username = username;
+        if (phone) user.phone = phone; 
+        
+        await user.save();
+
+        res.json({ 
+            message: 'Profil berhasil diupdate',
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                phone: user.phone,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// 2. GANTI PASSWORD
+exports.changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const user = await User.findByPk(req.user.id);
+
+        // Cek password lama
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) return res.status(400).json({ message: 'Password lama salah!' });
+
+        // Hash password baru
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        res.json({ message: 'Password berhasil diganti!' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

@@ -12,6 +12,7 @@ const adminDev = require('../controllers/deviceAdminController');
 router.get('/my', verifyToken, userDev.getMyDevices); 
 router.post('/pair', verifyToken, userDev.pairDevice); 
 router.post('/unpair/:id', verifyToken, userDev.unpairDevice);
+router.put('/update/:id', verifyToken, userDev.updateDevice);
 
 // ==========================================
 // ROUTES ADMIN (Prefix: /api/devices)

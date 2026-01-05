@@ -89,7 +89,11 @@ export const getDeviceHistory = async (id, startDate = null, endDate = null) => 
     return response.data;
 };
 
-
+// User Update Device Name
+export const updateDeviceName = async (id, name) => {
+    const response = await deviceApi.put(`/update/${id}`, { name });
+    return response.data;
+};
 
 export const updateSimInfo = async (id, data) => {
     const response = await deviceApi.put(`/admin/sim/${id}`, data);

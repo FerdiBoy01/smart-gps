@@ -1,6 +1,6 @@
 import useMyDevices from '../../hooks/useMyDevices';
 import { getCurrentUser, logoutUser } from '../../services/authService';
-import { Plus, Smartphone, Trash2, X, MapPin, LogOut, Activity, WifiOff, AlertTriangle, Clock, Signal } from 'lucide-react';
+import { Plus, Smartphone, Trash2, X, MapPin, LogOut, Activity, WifiOff, AlertTriangle, Clock, Signal, Settings } from 'lucide-react'; // Tambah icon Settings
 import { useNavigate } from 'react-router-dom';
 import Alert from '../../components/Alert';
 
@@ -48,9 +48,25 @@ const MyDevicesPage = () => {
                     </div>
                     <span className="font-bold text-lg tracking-tight text-slate-800">PRATIA</span>
                 </div>
-                <button onClick={handleLogout} className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-slate-100">
-                    <LogOut className="w-5 h-5" />
-                </button>
+                
+                {/* MENU KANAN (SETTINGS & LOGOUT) */}
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => navigate('/settings')} 
+                        className="text-slate-400 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-slate-100"
+                        title="Pengaturan"
+                    >
+                        <Settings className="w-5 h-5" />
+                    </button>
+
+                    <button 
+                        onClick={handleLogout} 
+                        className="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-slate-100"
+                        title="Keluar"
+                    >
+                        <LogOut className="w-5 h-5" />
+                    </button>
+                </div>
             </nav>
 
             <div className="container mx-auto px-4 pt-6 pb-20 max-w-lg md:max-w-4xl">
@@ -158,7 +174,7 @@ const MyDevicesPage = () => {
                                 </div>
                             </div>
                             
-                            {/* Tombol Hapus (Hidden by default, show on hover/swipe logic ideally, but simplified here) */}
+                            {/* Tombol Hapus */}
                             <button 
                                 onClick={(e) => { e.stopPropagation(); handleUnpair(dev.id); }} 
                                 className="absolute top-0 right-0 p-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -181,7 +197,7 @@ const MyDevicesPage = () => {
                 )}
             </div>
 
-            {/* MODAL PAIRING (Desain diperhalus) */}
+            {/* MODAL PAIRING */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-end sm:items-center z-[60] p-0 sm:p-4">
                     <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-fade-in-up">
