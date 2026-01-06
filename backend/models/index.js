@@ -2,6 +2,7 @@ const User = require('./User');
 const Device = require('./Device');
 const Otp = require('./Otp');
 const GpsData = require('./GpsData'); // Kita masukkan juga biar sekalian rapi
+const Report = require('./Report');
 
 // --- DEFINISI RELASI (ASSOCIATIONS) ---
 
@@ -17,6 +18,10 @@ Device.belongsTo(User, {
     as: 'owner' // Alias biar nanti bisa panggil device.owner
 });
 
+// Relasi Baru (Report)
+User.hasMany(Report, { foreignKey: 'userId', as: 'reports' });
+Report.belongsTo(User, { foreignKey: 'userId', as: 'reporter' });
+
 // Export semua model yang sudah berelasi
 Device.hasMany(GpsData, { foreignKey: 'deviceId', as: 'history' });
 GpsData.belongsTo(Device, { foreignKey: 'deviceId' });
@@ -24,5 +29,6 @@ module.exports = {
     User,
     Device,
     Otp,
-    GpsData
+    GpsData,
+    Report
 };

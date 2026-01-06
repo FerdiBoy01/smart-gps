@@ -65,6 +65,11 @@ const Device = sequelize.define('Device', {
     quotaWarningThreshold: {
         type: DataTypes.INTEGER, // Persentase warning (misal: 80%)
         defaultValue: 80
+    },
+    
+    lastQuotaNotification: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 });
 

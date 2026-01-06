@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
+const startQuotaChecker = require('./utils/cronJobs');
 
 // Import Model & Relasi
 require('./models'); 
@@ -10,6 +11,7 @@ const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
 const gpsRoutes = require('./routes/gpsRoutes'); 
+const reportRoutes = require('./routes/reportRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -28,6 +30,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/devices', deviceRoutes); 
 app.use('/api/gps', gpsRoutes);
+app.use('/api/reports', reportRoutes);
+
+// JALANKAN CRON JOB
+startQuotaChecker();
+
 
 // 2. RESET DATABASE (FORCE: TRUE)
 // Gunakan ini SEKALI SAJA untuk membersihkan error "Too many keys"

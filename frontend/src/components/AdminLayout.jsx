@@ -1,87 +1,91 @@
-import { useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Smartphone, LogOut, Menu, X, MapPin } from 'lucide-react';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { logoutUser } from '../services/authService';
+import { 
+    LayoutDashboard, Users, Smartphone, 
+    MessageSquareWarning, LogOut, MapPin, AlertTriangle
+} from 'lucide-react';
 
 const AdminLayout = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const location = useLocation();
     const navigate = useNavigate();
 
     const handleLogout = () => {
         logoutUser();
-        navigate('/login');
+        navigate('/');
     };
 
-    // Menu Item Helper
-    const MenuItem = ({ to, icon: Icon, label }) => {
-        const isActive = location.pathname === to;
-        return (
-            <Link to={to} className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-800'
-            }`}>
-                <Icon size={20} />
-                <span className="font-medium">{label}</span>
-            </Link>
-        );
-    };
+    const navItems = [
+        { path: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: 'users', label: 'Manajemen User', icon: Users },
+        { path: 'devices', label: 'Manajemen Device', icon: Smartphone },
+        { path: 'reports', label: 'Laporan User', icon: MessageSquareWarning }, // Menu Baru
+        { path: 'alerts', label: 'Alert Center', icon: AlertTriangle },
+    ];
 
     return (
-        <div className="flex h-screen bg-slate-50">
-            {/* Sidebar Mobile Overlay */}
-            {isSidebarOpen && (
-                <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)}></div>
-            )}
-
+        <div className="flex min-h-screen bg-slate-50 font-sans">
             {/* SIDEBAR */}
-            <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-200 ease-in-out ${
-                isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-            }`}>
-                <div className="h-full flex flex-col">
-                    {/* Logo Area */}
-                    <div className="flex items-center justify-between h-16 px-6 bg-slate-950">
-                        <div className="flex items-center space-x-2 font-bold text-xl">
-                            <MapPin className="text-blue-500" />
-                            <span>Smart GPS</span>
-                        </div>
-                        <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-white">
-                            <X size={24} />
-                        </button>
-                    </div>
+            <aside className="w-64 bg-white border-r border-slate-200 fixed h-full hidden md:flex flex-col z-20">
+                <div className="p-6 border-b border-slate-100 flex items-center gap-2 text-blue-600">
+                    <MapPin className="w-6 h-6" />
+                    <span className="font-bold text-xl tracking-tight text-slate-800">Admin Panel</span>
+                </div>
+                
+                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                    {navItems.map((item) => (
+                        <NavLink
+                            key={item.path}
+                            to={`/admin/${item.path}`}
+                            className={({ isActive }) => `
+                                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all
+                                ${isActive 
+                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
+                                }
+                            `}
+                        >
+                            <item.icon size={20} />
+                            {item.label}
+                        </NavLink>
+                    ))}
+                </nav>
 
-                    {/* Navigation Menu */}
-                    <nav className="flex-1 px-4 py-6 space-y-2">
-                        <MenuItem to="/admin/dashboard" icon={LayoutDashboard} label="Dashboard" />
-                        <MenuItem to="/admin/users" icon={Users} label="Kelola User" />
-                        <MenuItem to="/admin/devices" icon={Smartphone} label="Kelola Device" />
-                        {/* Tambah menu lain di sini nanti */}
-                    </nav>
-                    
-                    {/* Logout Button */}
-                    <div className="p-4 border-t border-slate-800">
-                        <button onClick={handleLogout} className="flex items-center w-full space-x-3 px-4 py-3 text-red-400 hover:bg-slate-800 rounded-lg transition-colors">
-                            <LogOut size={20} />
-                            <span>Keluar</span>
-                        </button>
-                    </div>
+                <div className="p-4 border-t border-slate-100">
+                    <button 
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                        <LogOut size={20} /> Keluar
+                    </button>
                 </div>
             </aside>
 
-            {/* MAIN CONTENT AREA */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Header Mobile */}
-                <header className="flex items-center justify-between h-16 px-6 bg-white border-b border-slate-200 lg:hidden">
-                    <button onClick={() => setIsSidebarOpen(true)} className="text-slate-600">
-                        <Menu size={24} />
-                    </button>
+            {/* CONTENT AREA */}
+            <main className="flex-1 md:ml-64 p-0 md:p-0 overflow-x-hidden">
+                {/* Mobile Header (Hanya muncul di layar kecil) */}
+                <div className="md:hidden bg-white p-4 shadow-sm border-b flex justify-between items-center sticky top-0 z-30">
                     <span className="font-bold text-slate-800">Admin Panel</span>
-                </header>
+                    <button onClick={handleLogout} className="text-slate-400"><LogOut/></button>
+                </div>
+                
+                <Outlet />
+            </main>
 
-                {/* Page Content */}
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 p-6">
-                    <Outlet /> {/* Ini tempat halaman (UsersPage, dll) muncul */}
-                </main>
-            </div>
+            {/* Mobile Bottom Nav (Optional, untuk layar kecil) */}
+            <nav className="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-3 z-40">
+                {navItems.map((item) => (
+                    <NavLink
+                        key={item.path}
+                        to={`/admin/${item.path}`}
+                        className={({ isActive }) => `
+                            flex flex-col items-center gap-1 p-2 rounded-lg text-[10px] font-bold
+                            ${isActive ? 'text-blue-600 bg-blue-50' : 'text-slate-400'}
+                        `}
+                    >
+                        <item.icon size={20} />
+                        {item.label}
+                    </NavLink>
+                ))}
+            </nav>
         </div>
     );
 };

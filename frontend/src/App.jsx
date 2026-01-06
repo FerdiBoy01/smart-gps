@@ -4,53 +4,62 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import AdminRoute from './components/AdminRoute';
 import AdminLayout from './components/AdminLayout';
 
-// Pages
+// Pages - Auth
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import VerifyOtp from './pages/auth/VerifyOtp';
 
+// Landing Page (BARU)
+import LandingPage from './pages/LandingPage';
+
 // Admin Pages
 import UsersPage from './pages/admin/UsersPage';
 import AdminDevicesPage from './pages/admin/AdminDevicesPage';
+import AdminDashboardPage from './pages/admin/DashboardPage'; // Halaman Real Dashboard
+import ReportPage from './pages/user/ReportPage';
+import AdminReportsPage from './pages/admin/AdminReportsPage';
+import AdminAlertsPage from './pages/admin/AdminAlertsPage';
 
 // User Pages
-import MyDevicesPage from './pages/user/MyDevicesPage'; // Import Page Baru
+import MyDevicesPage from './pages/user/MyDevicesPage';
 import DeviceDetailPage from './pages/user/DeviceDetailPage';
 import SettingsPage from './pages/user/SettingsPage';
-
-
-// Placeholder Dashboard Admin
-const AdminDashboardHome = () => (
-    <div className="p-8 text-center bg-white rounded-xl border border-slate-200 shadow-sm">
-        <h2 className="text-2xl font-bold text-slate-800">Dashboard Admin</h2>
-        <p className="text-slate-500 mt-2">Selamat datang di panel kontrol Smart GPS.</p>
-    </div>
-);
+import GuidePage from './pages/user/GuidePage';
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* PUBLIC ROUTES */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* ==============================
+            PUBLIC ROUTES (Login/Register)
+           ============================== */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         
-        {/* USER ROUTES */}
-        {/* Menggunakan MyDevicesPage sebagai dashboard utama user */}
+        {/* ==============================
+            USER ROUTES (Protected by Logic inside Page or Component)
+           ============================== */}
         <Route path="/dashboard" element={<MyDevicesPage />} />
         <Route path="/device/:id" element={<DeviceDetailPage />} />
-        {/* Tambahkan Route Settings */}
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/reports" element={<ReportPage />} />
+        <Route path="/guide" element={<GuidePage />} />
 
-        {/* ADMIN ROUTES (Protected) */}
+        {/* ==============================
+            ADMIN ROUTES (Protected by AdminRoute)
+           ============================== */}
         <Route element={<AdminRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<Navigate to="/admin/dashboard" />} />
-                <Route path="dashboard" element={<AdminDashboardHome />} />
+                {/* Redirect /admin ke /admin/dashboard */}
+                <Route index element={<Navigate to="dashboard" replace />} />
+                
+                <Route path="dashboard" element={<AdminDashboardPage />} />
+                <Route path="reports" element={<AdminReportsPage />} />
                 <Route path="users" element={<UsersPage />} />
                 <Route path="devices" element={<AdminDevicesPage />} />
+                <Route path="alerts" element={<AdminAlertsPage />} />
             </Route>
         </Route>
 

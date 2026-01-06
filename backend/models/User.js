@@ -28,7 +28,12 @@ const User = sequelize.define('User', {
     isVerified: { // User belum bisa login kalau belum verifikasi OTP
         type: DataTypes.BOOLEAN,
         defaultValue: false
-    }
+    },
+    phone: { 
+            type: DataTypes.STRING, 
+            allowNull: true, // Boleh kosong dulu
+            defaultValue: null 
+        },
 });
 
 module.exports = User;

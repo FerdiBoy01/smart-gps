@@ -1,6 +1,6 @@
 import useMyDevices from '../../hooks/useMyDevices';
 import { getCurrentUser, logoutUser } from '../../services/authService';
-import { Plus, Smartphone, Trash2, X, MapPin, LogOut, Activity, WifiOff, AlertTriangle, Clock, Signal, Settings } from 'lucide-react'; // Tambah icon Settings
+import { Plus, Smartphone, Trash2, X, MapPin, LogOut, Activity, WifiOff, AlertTriangle, Clock, Signal, Settings, MessageSquareWarning, BookOpen } from 'lucide-react'; // Tambah Icon MessageSquareWarning
 import { useNavigate } from 'react-router-dom';
 import Alert from '../../components/Alert';
 
@@ -49,8 +49,29 @@ const MyDevicesPage = () => {
                     <span className="font-bold text-lg tracking-tight text-slate-800">PRATIA</span>
                 </div>
                 
-                {/* MENU KANAN (SETTINGS & LOGOUT) */}
+                {/* MENU KANAN (BANTUAN, SETTINGS, LOGOUT) */}
                 <div className="flex items-center gap-2">
+                    {/* TOMBOL PANDUAN (BARU) */}
+    <button 
+        onClick={() => navigate('/guide')} 
+        className="text-slate-400 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-slate-100 relative group"
+        title="Panduan Penggunaan"
+    >
+        <BookOpen className="w-5 h-5" />
+    </button>
+                    {/* TOMBOL BANTUAN/LAPORAN (BARU) */}
+                    <button 
+                        onClick={() => navigate('/reports')} 
+                        className="text-slate-400 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-slate-100 relative group"
+                        title="Bantuan & Laporan"
+                    >
+                        <MessageSquareWarning className="w-5 h-5" />
+                        {/* Tooltip sederhana */}
+                        <span className="absolute top-full mt-1 right-0 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                            Lapor Masalah
+                        </span>
+                    </button>
+
                     <button 
                         onClick={() => navigate('/settings')} 
                         className="text-slate-400 hover:text-blue-600 transition-colors p-2 rounded-full hover:bg-slate-100"
@@ -71,10 +92,9 @@ const MyDevicesPage = () => {
 
             <div className="container mx-auto px-4 pt-6 pb-20 max-w-lg md:max-w-4xl">
                 
-                {/* 2. STATISTIK COMPACT (GRID 2 KOLOM DI MOBILE) */}
+                {/* 2. STATISTIK COMPACT */}
                 {!loading && devices.length > 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-                        {/* Online */}
                         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group">
                             <div className="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <Activity size={40} className="text-green-500" />
@@ -86,7 +106,6 @@ const MyDevicesPage = () => {
                             </div>
                         </div>
 
-                        {/* Offline */}
                         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group">
                             <div className="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <WifiOff size={40} className="text-slate-500" />
@@ -98,7 +117,6 @@ const MyDevicesPage = () => {
                             </div>
                         </div>
 
-                        {/* Quota Alert (Span Full Width di Mobile jika ada warning, atau Grid biasa) */}
                         <div className={`bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden col-span-2 md:col-span-1 ${stats.quotaWarning > 0 ? 'ring-2 ring-red-100' : ''}`}>
                             <div className="absolute right-0 top-0 p-3 opacity-10">
                                 <AlertTriangle size={40} className={stats.quotaWarning > 0 ? "text-red-500" : "text-blue-500"} />
@@ -114,7 +132,7 @@ const MyDevicesPage = () => {
                     </div>
                 )}
 
-                {/* 3. JUDUL & TOMBOL TAMBAH (SEJAJAR) */}
+                {/* 3. JUDUL & TOMBOL TAMBAH */}
                 <div className="flex justify-between items-end mb-4">
                     <div>
                         <h2 className="text-lg font-bold text-slate-800">Perangkat Saya</h2>
@@ -130,7 +148,7 @@ const MyDevicesPage = () => {
 
                 {alert && <div className="mb-4"><Alert type={alert.type} message={alert.message} onClose={closeAlert} /></div>}
 
-                {/* 4. LIST DEVICE YANG LEBIH CLEAN */}
+                {/* 4. LIST DEVICE */}
                 <div className="space-y-3">
                     {loading ? (
                         [1,2].map(i => <div key={i} className="h-24 bg-slate-200 rounded-2xl animate-pulse"></div>)
@@ -140,20 +158,16 @@ const MyDevicesPage = () => {
                             onClick={() => navigate(`/device/${dev.id}`)}
                             className="bg-white p-4 rounded-2xl shadow-[0_2px_8px_rgb(0,0,0,0.04)] border border-slate-100 active:scale-[0.98] transition-all relative overflow-hidden cursor-pointer group"
                         >
-                            {/* Status Bar Kiri */}
                             <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${isOnline(dev.lastActive) ? 'bg-green-500' : 'bg-slate-300'}`}></div>
 
                             <div className="flex items-center gap-4 pl-2">
-                                {/* Icon Device */}
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isOnline(dev.lastActive) ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-400'}`}>
                                     <Smartphone size={24} strokeWidth={1.5} />
                                 </div>
 
-                                {/* Info Device */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start">
                                         <h3 className="font-bold text-slate-800 text-base truncate pr-2">{dev.name}</h3>
-                                        {/* Status Badge Kecil */}
                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isOnline(dev.lastActive) ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                                             {isOnline(dev.lastActive) ? 'ON' : 'OFF'}
                                         </span>
@@ -174,7 +188,6 @@ const MyDevicesPage = () => {
                                 </div>
                             </div>
                             
-                            {/* Tombol Hapus */}
                             <button 
                                 onClick={(e) => { e.stopPropagation(); handleUnpair(dev.id); }} 
                                 className="absolute top-0 right-0 p-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -184,10 +197,10 @@ const MyDevicesPage = () => {
                         </div>
                     ))}
                 </div>
-
-                {/* Empty State */}
+                
+                {/* Empty State & Modal (Sama seperti sebelumnya) */}
                 {!loading && devices.length === 0 && (
-                    <div className="text-center py-16">
+                     <div className="text-center py-16">
                         <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
                             <Signal size={32} />
                         </div>
@@ -197,7 +210,7 @@ const MyDevicesPage = () => {
                 )}
             </div>
 
-            {/* MODAL PAIRING */}
+            {/* MODAL PAIRING (Sama seperti sebelumnya) */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-end sm:items-center z-[60] p-0 sm:p-4">
                     <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-fade-in-up">

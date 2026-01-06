@@ -34,7 +34,7 @@ export const loginUser = async (loginData) => {
 
 export const logoutUser = () => {
     localStorage.removeItem('user');
-    window.location.href = '/login';
+    window.location.href = '/';
 };
 
 // Ambil data User lengkap (untuk ditampilkan nama, role, dll)

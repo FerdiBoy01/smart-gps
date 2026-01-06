@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const bcrypt = require('bcrypt'); // <--- INI YANG TADI KURANG
+const bcrypt = require('bcrypt');
 
 // Ambil Semua User (Kecuali Password)
 exports.getAllUsers = async (req, res) => {
@@ -27,7 +27,8 @@ exports.deleteUser = async (req, res) => {
 // 1. CREATE USER
 exports.createUser = async (req, res) => {
     try {
-        const { username, email, password, role } = req.body;
+        // PERBAIKAN: Tambahkan 'phone' disini
+        const { username, email, password, role, phone } = req.body;
 
         // Validasi Input Dasar
         if (!username || !email || !password) {
@@ -40,7 +41,7 @@ exports.createUser = async (req, res) => {
             return res.status(400).json({ message: 'Email sudah terdaftar, gunakan email lain.' });
         }
 
-        // Hash Password (Sekarang bcrypt sudah didefinisikan, jadi ini aman)
+        // Hash Password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         
@@ -50,6 +51,7 @@ exports.createUser = async (req, res) => {
             email, 
             password: hashedPassword, 
             role: role || 'user', 
+            phone: phone || null, // <--- PERBAIKAN: Simpan phone ke database
             isVerified: true
         });
 
@@ -65,7 +67,8 @@ exports.createUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const { username, email, role, password } = req.body;
+        // PERBAIKAN: Tambahkan 'phone' disini
+        const { username, email, role, password, phone } = req.body;
 
         const user = await User.findByPk(id);
         if (!user) return res.status(404).json({ message: 'User tidak ditemukan' });
@@ -74,6 +77,7 @@ exports.updateUser = async (req, res) => {
         user.username = username;
         user.email = email;
         user.role = role;
+        user.phone = phone || null; // <--- PERBAIKAN: Update phone di database
 
         // Hanya update password jika diisi dan tidak kosong
         if (password && password.trim() !== "") {
