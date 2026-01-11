@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getDeviceDetail, getDeviceHistory } from '../../services/deviceService';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import { ArrowLeft, Clock, Activity, MapPin, Signal, Calendar, Search, WifiOff, RefreshCw } from 'lucide-react';
+import { 
+    ArrowLeft, Clock, MapPin, Signal, Calendar, Search, RefreshCw, 
+    Power, AlertTriangle, Loader2 // <--- IMPORT ICON BARU
+} from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -10,7 +13,6 @@ import 'leaflet/dist/leaflet.css';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// 1. Icon Default (Biru)
 let DefaultIcon = L.icon({
     iconUrl: icon,
     shadowUrl: iconShadow,
@@ -19,7 +21,6 @@ let DefaultIcon = L.icon({
     popupAnchor: [1, -34],
 });
 
-// 2. Icon Start (Hijau)
 const StartIcon = new L.Icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -28,7 +29,6 @@ const StartIcon = new L.Icon({
     popupAnchor: [1, -34],
 });
 
-// 3. Icon End (Merah)
 const EndIcon = new L.Icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -55,18 +55,22 @@ const DeviceDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     
-    // State
+    // State Data
     const [device, setDevice] = useState(null);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterDate, setFilterDate] = useState("");
+    
+    // State Modal Cut Engine
+    const [isCutModalOpen, setIsCutModalOpen] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
 
     // Polling Logic
     useEffect(() => {
         fetchInitialData();
         const interval = setInterval(() => {
             if (!filterDate) fetchInitialData(); 
-        }, 10000); // 10 Detik
+        }, 10000); 
         return () => clearInterval(interval);
     }, [id, filterDate]);
 
@@ -84,6 +88,7 @@ const DeviceDetailPage = () => {
         }
     };
 
+    // Filter Logic
     const handleFilterSearch = async (e) => {
         e.preventDefault();
         if (!filterDate) return;
@@ -108,7 +113,18 @@ const DeviceDetailPage = () => {
         fetchInitialData();
     };
 
-    // Helper Logic
+    // --- LOGIC MATIKAN MESIN (SIMULASI) ---
+    const executeCutEngine = () => {
+        setActionLoading(true);
+        // Simulasi request ke backend
+        setTimeout(() => {
+            setActionLoading(false);
+            setIsCutModalOpen(false);
+            alert(`PERINTAH TERKIRIM: Mesin ${device.name} dimatikan.`);
+        }, 2000);
+    };
+
+    // Helper UI
     const isOnline = (lastActive) => {
         if (!lastActive) return false;
         return (new Date() - new Date(lastActive)) < 5 * 60 * 1000;
@@ -143,11 +159,9 @@ const DeviceDetailPage = () => {
     return (
         <div className="h-screen w-full relative bg-slate-100 overflow-hidden font-sans">
             
-            {/* --- 1. FLOATING HEADER (App-like Feel) --- */}
+            {/* 1. FLOATING HEADER */}
             <div className="absolute top-0 left-0 right-0 z-[1000] p-4 pointer-events-none">
                 <div className="bg-white/90 backdrop-blur-md shadow-lg rounded-2xl p-3 border border-white/20 pointer-events-auto flex flex-col gap-3">
-                    
-                    {/* Top Row: Navigasi & Nama Device */}
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
                             <button onClick={() => navigate('/dashboard')} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-600">
@@ -164,8 +178,6 @@ const DeviceDetailPage = () => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Jam Terakhir Update (Kanan) */}
                         <div className="text-right hidden sm:block">
                             <div className="flex items-center justify-end gap-1 text-xs text-slate-500 font-medium bg-slate-50 px-2 py-1 rounded-lg">
                                 <Clock size={12}/>
@@ -173,8 +185,6 @@ const DeviceDetailPage = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* Bottom Row: Filter Tanggal (Integrated) */}
                     <div className="bg-slate-50 p-1 rounded-xl flex items-center gap-2 border border-slate-100">
                         <div className="pl-3 text-slate-400"><Calendar size={16}/></div>
                         <input 
@@ -201,18 +211,12 @@ const DeviceDetailPage = () => {
                 </div>
             </div>
 
-            {/* --- 2. MAP CONTAINER --- */}
+            {/* 2. MAP CONTAINER */}
             <div className="h-full w-full relative z-0"> 
                 <MapContainer center={currentPos} zoom={15} style={{ height: "100%", width: "100%" }} zoomControl={false}>
-                    <TileLayer
-                        attribution='&copy; OpenStreetMap'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    
-                    {/* Elements */}
+                    <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                     <Polyline positions={polyline} pathOptions={{ color: filterDate ? '#8b5cf6' : '#2563eb', weight: 4, opacity: 0.8 }} />
                     <FitBounds path={polyline} />
-
                     {filterDate ? (
                         <>
                             {startPoint && <Marker position={[startPoint.latitude, startPoint.longitude]} icon={StartIcon}><Popup>Start</Popup></Marker>}
@@ -221,19 +225,17 @@ const DeviceDetailPage = () => {
                     ) : (
                         device.lastLatitude && (
                             <Marker position={currentPos}>
-                                <Popup>
-                                    <b className="text-blue-600">{device.name}</b><br />
-                                    <span className="text-xs text-slate-500">{new Date(device.lastActive).toLocaleString()}</span>
-                                </Popup>
+                                <Popup><b className="text-blue-600">{device.name}</b></Popup>
                             </Marker>
                         )
                     )}
                 </MapContainer>
             </div>
             
-            {/* --- 3. FLOATING INFO PANEL (Bottom) --- */}
+            {/* 3. FLOATING INFO PANEL (Bottom) */}
             <div className="absolute bottom-6 left-4 right-4 z-[999] pointer-events-none">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl mx-auto">
+                {/* Gunakan Grid 3 Kolom biar tombol muat */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-4xl mx-auto">
                     
                     {/* Card 1: Koordinat */}
                     <div className="bg-white/90 backdrop-blur p-4 rounded-2xl shadow-xl border border-white/50 pointer-events-auto flex items-center gap-4">
@@ -241,43 +243,80 @@ const DeviceDetailPage = () => {
                             <MapPin size={20} />
                         </div>
                         <div>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Lokasi Terkini</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Lokasi</p>
                             <p className="font-mono text-sm font-bold text-slate-700 leading-tight mt-0.5">
                                 {device.lastLatitude?.toFixed(5)}, {device.lastLongitude?.toFixed(5)}
                             </p>
                         </div>
                     </div>
 
-                    {/* Card 2: SIM & Kuota (Hanya tampil jika ada provider) */}
-                    {device.simProvider && (
-                        <div className="bg-white/90 backdrop-blur p-4 rounded-2xl shadow-xl border border-white/50 pointer-events-auto flex items-center gap-4">
-                            <div className="bg-indigo-50 p-2.5 rounded-xl text-indigo-600">
-                                <Signal size={20} />
+                    {/* Card 2: SIM & Kuota */}
+                    <div className="bg-white/90 backdrop-blur p-4 rounded-2xl shadow-xl border border-white/50 pointer-events-auto flex items-center gap-4">
+                        <div className="bg-indigo-50 p-2.5 rounded-xl text-indigo-600">
+                            <Signal size={20} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-center mb-1">
+                                <h3 className="font-bold text-slate-800 text-sm truncate">{device.simProvider || "No SIM"}</h3>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${quota.percent > 90 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                                    {quota.status}
+                                </span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex justify-between items-center mb-1">
-                                    <h3 className="font-bold text-slate-800 text-sm truncate">{device.simProvider}</h3>
-                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                                        quota.percent > 90 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
-                                    }`}>
-                                        {quota.status}
-                                    </span>
-                                </div>
-                                {/* Progress Bar Mini */}
-                                <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                                    <div 
-                                        className={`h-full rounded-full ${quota.color}`} 
-                                        style={{ width: `${quota.percent}%` }}
-                                    ></div>
-                                </div>
-                                <p className="text-[10px] text-slate-400 mt-1 text-right">
-                                    {quota.usedMB.toFixed(0)} / {device.dataLimitMB} MB
-                                </p>
+                            <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                                <div className={`h-full rounded-full ${quota.color}`} style={{ width: `${quota.percent}%` }}></div>
                             </div>
                         </div>
-                    )}
+                    </div>
+
+                    {/* --- CARD 3: TOMBOL CUT ENGINE (DISINI!) --- */}
+                    <button 
+                        onClick={() => setIsCutModalOpen(true)}
+                        className="bg-red-600/90 backdrop-blur hover:bg-red-700 p-4 rounded-2xl shadow-xl border border-red-500/50 pointer-events-auto flex items-center justify-center gap-3 text-white transition-all active:scale-95 group"
+                    >
+                        <div className="bg-white/20 p-2 rounded-xl group-hover:rotate-90 transition-transform duration-500">
+                            <Power size={20} />
+                        </div>
+                        <div className="text-left">
+                            <p className="text-[10px] text-red-100 font-bold uppercase tracking-wider">Kontrol Mesin</p>
+                            <p className="font-bold text-sm leading-tight">MATIKAN</p>
+                        </div>
+                    </button>
                 </div>
             </div>
+
+            {/* --- MODAL SAFETY POPUP (Popup Muncul Disini) --- */}
+            {isCutModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center animate-fade-in-up">
+                        <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle size={32} />
+                        </div>
+                        
+                        <h3 className="text-lg font-bold text-slate-800">Matikan Mesin?</h3>
+                        <p className="text-sm text-slate-500 mb-6">
+                            Anda akan mematikan mesin <strong>{device.name}</strong>. 
+                            <br/><span className="text-red-500 font-bold text-xs">Pastikan kendaraan dalam kondisi aman!</span>
+                        </p>
+
+                        <div className="flex flex-col gap-3">
+                            <button 
+                                onClick={executeCutEngine}
+                                disabled={actionLoading}
+                                className="w-full bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition flex items-center justify-center gap-2"
+                            >
+                                {actionLoading ? <><Loader2 className="animate-spin" size={20}/> Mengirim...</> : "YA, MATIKAN SEKARANG"}
+                            </button>
+                            <button 
+                                onClick={() => setIsCutModalOpen(false)}
+                                disabled={actionLoading}
+                                className="w-full bg-white border border-slate-200 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-50 transition"
+                            >
+                                Batal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
