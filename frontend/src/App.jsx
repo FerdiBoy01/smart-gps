@@ -11,6 +11,7 @@ import VerifyOtp from './pages/auth/VerifyOtp';
 
 // Landing Page (BARU)
 import LandingPage from './pages/LandingPage';
+import AdminContentPage from './pages/admin/AdminContentPage';
 
 // Admin Pages
 import UsersPage from './pages/admin/UsersPage';
@@ -19,6 +20,7 @@ import AdminDashboardPage from './pages/admin/DashboardPage'; // Halaman Real Da
 import ReportPage from './pages/user/ReportPage';
 import AdminReportsPage from './pages/admin/AdminReportsPage';
 import AdminAlertsPage from './pages/admin/AdminAlertsPage';
+import AdminProductPage from './pages/admin/AdminProductPage';
 
 // User Pages
 import MyDevicesPage from './pages/user/MyDevicesPage';
@@ -55,11 +57,13 @@ function App() {
                 {/* Redirect /admin ke /admin/dashboard */}
                 <Route index element={<Navigate to="dashboard" replace />} />
                 
+                <Route path="products" element={<AdminProductPage />} />
                 <Route path="dashboard" element={<AdminDashboardPage />} />
                 <Route path="reports" element={<AdminReportsPage />} />
                 <Route path="users" element={<UsersPage />} />
                 <Route path="devices" element={<AdminDevicesPage />} />
                 <Route path="alerts" element={<AdminAlertsPage />} />
+                <Route path="content" element={<AdminContentPage />} />
             </Route>
         </Route>
 
