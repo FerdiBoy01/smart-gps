@@ -44,8 +44,8 @@ const MyDevicesPage = () => {
                             <Hexagon className="absolute text-orange-500 w-5 h-5 -rotate-12" fill="currentColor" />
                         </div>
                         <div className="hidden sm:block leading-tight">
-                            <h1 className="font-bold text-lg text-slate-800 tracking-tight">SmartGPS</h1>
-                            <p className="text-[10px] text-slate-500 font-medium">User Dashboard</p>
+                            <h1 className="font-bold text-lg text-slate-800 tracking-tight">PRATIA</h1>
+                            <p className="text-[10px] text-slate-500 font-medium">SmartGPS</p>
                         </div>
                     </div>
 
